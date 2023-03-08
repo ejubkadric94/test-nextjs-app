@@ -1,3 +1,6 @@
+import ItemsRenderer from "@/components/itemsRenderer";
+import SearchBox from "@/components/searchBox";
+import useItems from "@/customHooks/useItems";
 import { Item } from "@/typescript/types";
 import { useCallback, useEffect, useState } from "react";
 
@@ -10,15 +13,24 @@ const Items = ({ data }: Props) => {
     const [searchValueFinal, setSearchValueFinal] = useState<string>('');
     const [filteredData, setFilteredData] = useState<Item[]>([]);
 
+    useItems(searchValueFinal, setFilteredData);
     useEffect(() => {
-        if (!searchValueFinal) {
-            return;
-        }
-        
-        fetch(`http://localhost:3000/api/products?searchValue=${searchValueFinal}`)
-            .then(response => response.json())
-            .then(data => setFilteredData(data))
-    }, [searchValueFinal]);
+        const keyDownHandler = (event: KeyboardEvent) => {
+            
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            setSearchValueFinal(searchValue);
+            console.log('User pressed: ', event.key, searchValue);
+          }
+        };
+    
+        document.addEventListener('keydown', keyDownHandler);
+    
+        return () => {
+          document.removeEventListener('keydown', keyDownHandler);
+        };
+    }, [searchValue]);
+
 
     if (!data) {
         return <div>Nothing loaded yet</div>
@@ -28,42 +40,17 @@ const Items = ({ data }: Props) => {
         setSearchValueFinal(searchValue);
     }, [searchValue]);
 
-    let items;
-    if (!!filteredData.length) {
-        items = (
-            filteredData.map(item => (
-                <li key={item.id}>
-                    <div>{item.name}</div>
-                    <div>{item.price}</div>
-                    <div>{item.description}</div>
-                </li>
-            ))
-        )
-    } else {
-        items = (
-            data.map(item => (
-                <li key={item.id}>
-                    <div>{item.name}</div>
-                    <div>{item.price}</div>
-                    <div>{item.description}</div>
-                </li>
-            ))
-        )
-    } 
-
     return (
         <div>
-            <div>
-                <input
-                    value={searchValue}
-                    type="text"
-                    placeholder="Search for items"
-                    onChange={(e) => setSearchValue(e.currentTarget.value)}
-                />
-                <button onClick={onFilterItems}>Search</button>
-            </div>
+            <SearchBox
+                searchValue={searchValue}
+                onFilterItems={onFilterItems}
+                setSearchValue={setSearchValue}
+            />
             <ol>
-                {items}
+                <ItemsRenderer
+                    data={!!filteredData.length ? filteredData : data}
+                />
             </ol>
         </div>
     )

@@ -3,14 +3,11 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 // type Data = {
 //   name: string
 // }
-type Item = {
-    price: number;
-    description: string;
-    name: string;
-};
+
 
 import path from 'path';
 import { promises as fs } from 'fs';
+import { Item } from '@/typescript/types';
 
 export default async function handler(
     req: NextApiRequest,
